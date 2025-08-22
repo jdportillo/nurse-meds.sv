@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Buscador de medicamentos endovenosos y calculadora de goteo profesional - Herramienta para enfermería y medicina">
+    <meta name="keywords" content="medicamentos, endovenosos, goteo, calculadora, enfermería, medicina, venoclisis, preparación">
+    <meta name="author" content="Sistema de Medicamentos EV">
+    <meta name="robots" content="index, follow">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Medicamentos EV">
+    <meta name="application-name" content="Medicamentos EV">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://medicamentos-ev.github.io/">
+    <meta property="og:title" content="Medicamentos EV - Buscador y Calculadora">
+    <meta property="og:description" content="Herramienta profesional para búsqueda de medicamentos endovenosos y cálculo de goteo">
+    <meta property="og:image" content="https://medicamentos-ev.github.io/preview.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://medicamentos-ev.github.io/">
+    <meta property="twitter:title" content="Medicamentos EV - Buscador y Calculadora">
+    <meta property="twitter:description" content="Herramienta profesional para búsqueda de medicamentos endovenosos y cálculo de goteo">
+    <meta property="twitter:image" content="https://medicamentos-ev.github.io/preview.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <title>💊 Medicamentos EV - Buscador y Calculadora de Goteo</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: clamp(1rem, 4vw, 1.1rem);
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 0 0 15px 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+        }
+
+        .suggestion-item:hover, .suggestion-item.highlighted {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .medication-info {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .medication-info h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            font-weight: 600;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #34495e;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+        }
+
+        .info-value {
+            color: #2c3e50;
+            font-size: clamp(0.85rem, 3vw, 0.95rem);
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            font-size: clamp(1rem, 3.5vw, 1.1rem);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-weight: 500;
+            min-height: 54px;
+            touch-action: manipulation;
+        }
+
+        .btn:hover, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 16px 15px;
+            font-size: clamp(1rem, 3.5vw, 1rem);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+            min-height: 52px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            border-radius: 15px;
+            border-left: 5px solid #00b894;
+        }
+
+        .result h4 {
+            color: #00b894;
+            margin-bottom: 15px;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+
+        .calc-mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn-mode {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.85rem, 3vw, 0.9rem);
+            font-weight: 500;
+            touch-action: manipulation;
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-mode.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-mode:hover:not(.active) {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .time-unit-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            touch-action: manipulation;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .radio-option input[type="radio"]:checked + span {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .velocidad-fields {
+            display: none;
+        }
+
+        /* Estilos optimizados para la cámara de goteo */
+        .goteo-chamber {
+            margin-top: 25px;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            border-radius: 20px;
+            border: 3px solid #4a90e2;
+            text-align: center;
+        }
+
+        .goteo-chamber h4 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            font-weight: 600;
+        }
+
+        .chamber-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .chamber {
+            position: relative;
+            width: 100px;
+            height: 140px;
+            background: linear-gradient(180deg, transparent 0%, rgba(135, 206, 250, 0.3) 100%);
+            border: 4px solid #4a90e2;
+            border-radius: 50px 50px 15px 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .chamber-top {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 25px;
+            height: 12px;
+            background: #4a90e2;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .chamber-body {
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .drop-zone {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 25px;
+        }
+
+        .drop {
+            width: 10px;
+            height: 14px;
+            background: #4a90e2;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: dropFall 0.8s ease-in;
+            box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+        }
+
+        @keyframes dropFall {
+            0% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(40px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(90px) scale(0.8);
+            }
+        }
+
+        .liquid-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: linear-gradient(180deg, rgba(74, 144, 226, 0.8) 0%, rgba(74, 144, 226, 1) 100%);
+            border-radius: 0 0 12px 12px;
+            transition: height 0.3s ease;
+        }
+
+        .chamber-bottom {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 18px;
+            background: #4a90e2;
+            border-radius: 0 0 50% 50%;
+        }
+
+        .tube {
+            width: 6px;
+            height: 60px;
+            background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 0 0 3px 3px;
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            min-width: 200px;
+        }
+
+        .velocity-display {
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            font-weight: 700;
+            color: #4a90e2;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 3px solid #4a90e2;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+            min-width: 160px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-small {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            min-height: 44px;
+            min-width: 100px;
+        }
+
+        .btn-small:hover, .btn-small:active {
+            background: linear-gradient(135deg, #357abd 0%, #2968a3 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.stopped {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Optimizaciones para dispositivos móviles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px 15px;
+                margin-bottom: 15px;
+            }
+
+            .header {
+                padding: 20px 15px;
+                margin-bottom: 15px;
+            }
+
+            .calc-mode-selector {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .time-unit-selector {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .chamber {
+                width: 80px;
+                height: 120px;
+            }
+
+            .tube {
+                height: 40px;
+            }
+
+            .info-panel {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .velocity-display {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .btn-small {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .card {
+                padding: 15px 12px;
+                border-radius: 15px;
+            }
+
+            .chamber {
+                width: 70px;
+                height: 100px;
+            }
+
+            .drop-zone {
+                top: 15px;
+            }
+        }
+
+        /* Mejoras para accesibilidad y UX */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Optimizaciones para pantallas de alta densidad */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .btn, .btn-mode, .btn-small {
+                border: none;
+            }
+        }
+
+        /* Animaciones para alertas personalizadas */
+        @keyframes slideDown {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* PWA y optimizaciones de carga */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Optimizaciones de rendimiento */
+        .will-change {
+            will-change: transform, opacity;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Indicadores de focus para accesibilidad */
+        *:focus-visible {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* Prevenir selección de texto en elementos interactivos */
+        .btn, .btn-mode, .btn-small, .suggestion-item, .radio-option {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Optimizaciones para Safari */
+        @supports (-webkit-appearance: none) {
+            .search-input, .form-group input, .form-group select {
+                -webkit-appearance: none;
+                border-radius: 15px;
+            }
+        }
+
+        /* Dark mode support (preparación para futuras actualizaciones) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a2e;
+                --bg-secondary: #16213e;
+                --text-primary: #eee;
+                --text-secondary: #bbb;
+            }
+        }
+
+        /* Footer styles */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Página de Buscador de Medicamentos -->
+        <div id="searchPage" class="page active">
+            <div class="header">
+                <h1>💊 Medicamentos Endovenosos</h1>
+                <p>Busca información sobre medicamentos EV y calcula goteo</p>
+            </div>
+
+            <div class="card">
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Escribe el nombre del medicamento..."
+                        autocomplete="off"
+                    >
+                    <div id="suggestions" class="suggestions"></div>
+                </div>
+
+                <div id="medicationInfo" class="medication-info"></div>
+            </div>
+
+            <div class="navigation">
+                <button class="btn btn-secondary" onclick="showGoteoPage()">
+                    💧 Calculadora de Goteo
+                </button>
+            </div>
+        </div>
+
+        <!-- Página de Calculadora de Goteo -->
+        <div id="goteoPage" class="page">
+            <div class="header">
+                <h1>💧 Calculadora de Goteo</h1>
+                <p>Calcula la velocidad de infusión de sueros</p>
+            </div>
+
+            <div class="card">
+                <!-- Selector de modo de cálculo -->
+                <div class="form-group">
+                    <label>Tipo de cálculo:</label>
+                    <div class="calc-mode-selector">
+                        <button type="button" class="btn-mode active" onclick="setCalcMode('tiempo')" id="btnModoTiempo">
+                            ⏱️ Calcular por Tiempo
+                        </button>
+                        <button type="button" class="btn-mode" onclick="setCalcMode('velocidad')" id="btnModoVelocidad">
+                            💧 Calcular por Velocidad
+                        </button>
+                    </div>
+                </div>
+
+                <form id="goteoForm">
+                    <div class="form-group">
+                        <label for="volumen">Volumen del suero:</label>
+                        <select id="volumen" required>
+                            <option value="">Selecciona el volumen</option>
+                            <option value="50">50 ml</option>
+                            <option value="100">100 ml</option>
+                            <option value="250">250 ml</option>
+                            <option value="500">500 ml</option>
+                            <option value="1000">1000 ml</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="factorGoteo">Tipo de equipo:</label>
+                        <select id="factorGoteo" required>
+                            <option value="">Selecciona el equipo</option>
+                            <option value="20">Macrogotero (1 ml = 20 gotas)</option>
+                            <option value="60">Microgotero (1 ml = 60 microgotas)</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos para cálculo por tiempo -->
+                    <div id="camposTiempo" class="tiempo-fields">
+                        <div class="form-group">
+                            <label>Unidad de tiempo:</label>
+                            <div class="time-unit-selector">
+                                <label class="radio-option">
+                                    <input type="radio" name="unidadTiempo" value="horas" checked>
+                                    <span>Horas</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="unidadTiempo" value="minutos">
+                                    <span>Minutos</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="tiempo" id="labelTiempo">Tiempo de infusión (horas):</label>
+                            <input type="number" id="tiempo" step="0.1" min="0.1" placeholder="Ej: 2.5">
+                        </div>
+                    </div>
+
+                    <!-- Campos para cálculo por velocidad -->
+                    <div id="camposVelocidad" class="velocidad-fields" style="display: none;">
+                        <div class="form-group">
+                            <label for="gotasMinuto">Velocidad deseada (gotas/minuto):</label>
+                            <input type="number" id="gotasMinuto" step="1" min="1" placeholder="Ej: 25">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">🧮 Calcular</button>
+                </form>
+
+                <div id="result" class="result">
+                    <h4>Resultado del cálculo:</h4>
+                    <div id="resultContent"></div>
+                </div>
+
+                <!-- Cámara de goteo animada -->
+                <div id="goteoAnimation" class="goteo-chamber" style="display: none;">
+                    <h4>Visualización del Goteo</h4>
+                    <div class="chamber-container">
+                        <div class="chamber">
+                            <div class="chamber-top"></div>
+                            <div class="chamber-body">
+                                <div class="drop-zone">
+                                    <div class="drop" id="animatedDrop"></div>
+                                </div>
+                                <div class="liquid-level" id="liquidLevel"></div>
+                            </div>
+                            <div class="chamber-bottom"></div>
+                        </div>
+                        <div class="tube"></div>
+                        <div class="info-panel">
+                            <div class="velocity-display" id="velocityDisplay">0 gotas/min</div>
+                            <button class="btn-small" onclick="toggleAnimation()" id="animationToggle">▶️ Iniciar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="btn" onclick="showSearchPage()">
+                    ← Volver al Buscador
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>⚠️ <strong>Herramienta de apoyo educativo</strong> - Siempre verificar cálculos y seguir protocolos institucionales</p>
+            <p>Desarrollado por su Docente de Enfermería e Inglés</p>
+            <p>Hecho con ❤️ para profesionales de la salud</p>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de medicamentos endovenosos
+        const medicamentos = [
+            {"medicamento":"Albumina Humana 20%","presentacion":"50ml","via":"EV","preparacion":"solo se le coloca descartable de suero a pasar por infusion"},
+            {"medicamento":"Amikacina (amikin)","presentacion":"500mg-2ml","via":"IM, EV","preparacion":"cuando esta indicado por via EV diluir la cantidad a cumplir con 100ml de SSN a pasar por infusion"},
+            {"medicamento":"Aminofilina","presentacion":"250mg-10ml","via":"EV","preparacion":"diluir lo indicado con 240ml SSN a pasar por bombad e infusion"},
+            {"medicamento":"ampicilina","presentacion":"1 gr","via":"EV","preparacion":"diluir con 3 cc SSN o agua bidestilada, usar geringa de 10 mll"},
+            {"medicamento":"Ampicilina + Sulbactan","presentacion":"1.5gr","via":"EV","preparacion":"diluirlo frasco con 3cc agia bidestilada, despues despues con 15cc usar gerinfa de 20ml"},
+            {"medicamento":"Atropina","presentacion":"1mg-1ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Azitromicina","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 4.8ml de agua bidestilada dar vueltas despacio. luego diluir con 250-500ml SSN a pasar por infusion 1-3 horas"},
+            {"medicamento":"Bicarbonato de Sodio","presentacion":"100meq-100ml","via":"EV","preparacion":"diluir la dosis indicada con la misma cantidad de SSN"},
+            {"medicamento":"Bromuro de Vecuronio","presentacion":"10mg","via":"EV","preparacion":"diluir frasco con 10ml SSN"},
+            {"medicamento":"Bupivacaina Hiperbarica","presentacion":"20mg-4ml","via":"Intradural","preparacion":"directo"},
+            {"medicamento":"Bupivacaina simple","presentacion":"25mg-10ml","via":"Infiltracion","preparacion":"directo"},
+            {"medicamento":"Cefazolina","presentacion":"1gr","via":"EV","preparacion":"diluir frasco con 10ml de agua bidestilada, luego diluir con SSN 100ml a pasar por infusion"},
+            {"medicamento":"Cefepime","presentacion":"1gr","via":"EV","preparacion":"diluir el frasco con 10ml agua bidestilada posteriormente diluircon 100ml SSN a pasar por infusion"},
+            {"medicamento":"Ceftazidima","presentacion":"1gr","via":"EV","preparacion":"diluir frasco con 10ml de agua bidestilada posteriormente diluir con 100ml de SSN a pasar por infusion"},
+            {"medicamento":"Ceftriaxona","presentacion":"1gr","via":"EV","preparacion":"diluir frasco con 10ml de agua bidestilada posteriormente diluir con 100ml de SSN a pasar por infusion"},
+            {"medicamento":"Ciprofloxacina","presentacion":"400mg-200ml","via":"EV","preparacion":"directo a pasar por infusion"},
+            {"medicamento":"Claritromicina","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml de agua bidestilada posteriormente diluir con 250ml dextrosa al 5% a pasar por infusion lenta"},
+            {"medicamento":"Clindamicina","presentacion":"600mg-4ml","via":"EV","preparacion":"diluir la dosis en 100 o 250ml SSN a pasar por infusion"},
+            {"medicamento":"Cloruro de Potasio","presentacion":"20meq-10ml","via":"EV","preparacion":"diluir 1 ampolla en 500ml SSN a pasar por infusion NO SE PASA DIRECTO"},
+            {"medicamento":"Dexametasona","presentacion":"8mg-2ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Dexmedetomidina (precedex)","presentacion":"200mcg-2ml","via":"EV","preparacion":"diluir la dosis a cumplir en 48ml SSN total a pasar por bomba de infusion"},
+            {"medicamento":"Diazepam","presentacion":"10mg-2ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Digoxina","presentacion":"0.5mg-2ml","via":"EV","preparacion":"diluir la dosis indicada en 18ml SSN"},
+            {"medicamento":"Dimenhidrinato","presentacion":"50mg-1ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Dobutamina","presentacion":"250mg-20ml","via":"EV","preparacion":"diluir 1 frasco en 230ml dextrosa 5% total 250ml (1mg-1ml) a pasar por bomba de infusion"},
+            {"medicamento":"Dopamina","presentacion":"200mg-5ml","via":"EV","preparacion":"diluir 1-2-3 frascos segun necesidad en dextrosa al 5% total 250ml a pasar por bomba de infusion"},
+            {"medicamento":"Efedrina","presentacion":"50mg-1ml","via":"EV","preparacion":"diluir 1 ampolla en 9ml SSN (concentracion 5mg-1ml)"},
+            {"medicamento":"Epinefrina (adrenalina)","presentacion":"1mg-1ml","via":"EV","preparacion":"directo en PCR, en infusion diluir 1mg en 250ml dextrosa al 5% a pasar por bomba de infusion"},
+            {"medicamento":"Ertapenem","presentacion":"1gr","via":"EV","preparacion":"diluir frasco con 10ml de agua bidestilada luego diluir con 50ml SSN a pasar por infusion"},
+            {"medicamento":"Esmolol","presentacion":"2.5gr-10ml","via":"EV","preparacion":"diluir frasco con 240ml SSN total 250ml (10mg-1ml) a pasar por bomba de infusion"},
+            {"medicamento":"Etomidato","presentacion":"20mg-10ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Fentanilo","presentacion":"500mcg-10ml","via":"EV","preparacion":"directo o en infusion diluir en SSN segun necesidad a pasar por bomba de infusion"},
+            {"medicamento":"Fenitoina","presentacion":"250mg-5ml","via":"EV","preparacion":"diluir la dosis indicada con SSN a pasar por infusion lenta"},
+            {"medicamento":"Fluconazol","presentacion":"400mg-200ml","via":"EV","preparacion":"directo a pasar por infusion"},
+            {"medicamento":"Furosemida (lasix)","presentacion":"20mg-2ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Gentamicina","presentacion":"80mg-2ml","via":"EV","preparacion":"diluir la dosis indicada en 100ml SSN a pasar por infusion"},
+            {"medicamento":"Heparina Sodica","presentacion":"25.000UI-5ml","via":"EV","preparacion":"diluir 1 frasco en 245ml SSN total 250ml (100UI-1ml) a pasar por bomba de infusion"},
+            {"medicamento":"Hidrocortisona","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada despues diluir en 100ml SSN a pasar por infusion"},
+            {"medicamento":"Imipenem + Cilastatina","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir con 100ml SSN a pasar por infusion"},
+            {"medicamento":"Insulina cristalina","presentacion":"100UI-10ml","via":"EV","preparacion":"diluir 50-100 UI segun necesidad en 50ml SSN a pasar por bomba de infusion"},
+            {"medicamento":"Ketamina","presentacion":"500mg-10ml","via":"EV","preparacion":"directo o en infusion diluir en SSN segun necesidad"},
+            {"medicamento":"Ketorolaco","presentacion":"30mg-1ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Labetalol","presentacion":"100mg-20ml","via":"EV","preparacion":"directo o en infusion diluir en dextrosa 5% a pasar por bomba de infusion"},
+            {"medicamento":"Levofloxacina","presentacion":"750mg-150ml","via":"EV","preparacion":"directo a pasar por infusion"},
+            {"medicamento":"Lidocaina al 2%","presentacion":"100mg-5ml","via":"EV","preparacion":"directo en bolo o en infusion diluir en dextrosa 5% a pasar por bomba de infusion"},
+            {"medicamento":"Manitol","presentacion":"250ml","via":"EV","preparacion":"directo a pasar por infusion con equipo de suero"},
+            {"medicamento":"Meropenem","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir con 100ml SSN a pasar por infusion"},
+            {"medicamento":"Metamizol (Dipirona)","presentacion":"2.5gr-5ml","via":"EV","preparacion":"diluir en 10ml SSN"},
+            {"medicamento":"Metilprednisolona","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con agua bidestilada posteriormente diluir en 100ml SSN a pasar por infusion"},
+            {"medicamento":"Metoclopramida","presentacion":"10mg-2ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Metoprolol","presentacion":"5mg-5ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Metronidazol","presentacion":"500mg-100ml","via":"EV","preparacion":"directo a pasar por infusion"},
+            {"medicamento":"Midazolam","presentacion":"50mg-10ml","via":"EV","preparacion":"directo o en infusion diluir en SSN segun necesidad a pasar por bomba de infusion"},
+            {"medicamento":"Milrinona","presentacion":"20mg-20ml","via":"EV","preparacion":"diluir frasco en 80ml dextrosa 5% total 100ml (200mcg-1ml) a pasar por bomba de infusion"},
+            {"medicamento":"Morfina","presentacion":"10mg-1ml","via":"EV","preparacion":"directo o en infusion diluir en SSN segun necesidad a pasar por bomba de infusion"},
+            {"medicamento":"Naloxona","presentacion":"0.4mg-1ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Nimodipino","presentacion":"50mg-50ml","via":"EV","preparacion":"directo a pasar por bomba de infusion NO USAR CON PVC"},
+            {"medicamento":"Nitroprusiato de Sodio","presentacion":"50mg","via":"EV","preparacion":"diluir frasco en 250ml dextrosa 5% a pasar por bomba de infusion PROTEGER DE LA LUZ"},
+            {"medicamento":"Norepinefrina (Noradrenalina)","presentacion":"4mg-4ml","via":"EV","preparacion":"diluir 1-2 frascos en dextrosa 5% total 250ml a pasar por bomba de infusion"},
+            {"medicamento":"Omeprazol","presentacion":"40mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir con 90ml SSN a pasar por infusion"},
+            {"medicamento":"Ondansetron","presentacion":"8mg-4ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Oxitocina","presentacion":"10UI-1ml","via":"EV","preparacion":"diluir 1-2 ampollas en 500ml SSN a pasar por bomba de infusion"},
+            {"medicamento":"Pantoprazol","presentacion":"40mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir con 90ml SSN a pasar por infusion"},
+            {"medicamento":"Piperacilina + Tazobactam","presentacion":"4.5gr","via":"EV","preparacion":"diluir frasco con 20ml agua bidestilada posteriormente diluir con 100ml SSN a pasar por infusion"},
+            {"medicamento":"Propofol","presentacion":"1gr-100ml","via":"EV","preparacion":"directo o diluir en jeringas segun necesidad a pasar por bomba de infusion"},
+            {"medicamento":"Propranolol","presentacion":"5mg-5ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Protamina","presentacion":"50mg-5ml","via":"EV","preparacion":"diluir la dosis indicada en SSN a pasar por infusion lenta"},
+            {"medicamento":"Ranitidina","presentacion":"50mg-2ml","via":"EV","preparacion":"directo o diluir en 20ml SSN"},
+            {"medicamento":"Remifentanilo","presentacion":"5mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir en SSN segun necesidad a pasar por bomba de infusion"},
+            {"medicamento":"Rocuronio","presentacion":"50mg-5ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Solucortef (Hidrocortisona)","presentacion":"100mg","via":"EV","preparacion":"diluir frasco con agua bidestilada directo o diluir en 100ml SSN"},
+            {"medicamento":"Succinilcolina","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada"},
+            {"medicamento":"Sulfato de Magnesio","presentacion":"4gr-8ml","via":"EV","preparacion":"diluir 1-2 ampollas en 100ml SSN a pasar por infusion"},
+            {"medicamento":"Tiopental","presentacion":"1gr","via":"EV","preparacion":"diluir frasco con 20ml agua bidestilada"},
+            {"medicamento":"Tramadol","presentacion":"100mg-2ml","via":"EV","preparacion":"directo o diluir en 18ml SSN"},
+            {"medicamento":"Vancomicina","presentacion":"500mg","via":"EV","preparacion":"diluir frasco con 10ml agua bidestilada posteriormente diluir con 100ml SSN a pasar por infusion de 60-90 minutos"},
+            {"medicamento":"Vasopresina","presentacion":"20UI-1ml","via":"EV","preparacion":"diluir 1 ampolla en 250ml SSN a pasar por bomba de infusion"},
+            {"medicamento":"Vecuronio","presentacion":"10mg","via":"EV","preparacion":"diluir frasco con 10ml SSN"},
+            {"medicamento":"Verapamilo","presentacion":"5mg-2ml","via":"EV","preparacion":"directo"},
+            {"medicamento":"Vitamina K1 (Fitomenadiona)","presentacion":"10mg-1ml","via":"EV","preparacion":"diluir en 50ml SSN a pasar por infusion lenta"},
+            {"medicamento":"Warfarina","presentacion":"5mg","via":"VO","preparacion":"via oral"},
+            {"medicamento":"Zinc","presentacion":"10mg-10ml","via":"EV","preparacion":"diluir en SSN segun indicacion"}
+        ];
+
+        // Variables globales para la calculadora
+        let currentCalcMode = 'tiempo';
+        let dropAnimationInterval = null;
+        let isAnimationRunning = false;
+        let currentSuggestionIndex = -1;
+        let currentDropsPerMinute = 0;
+
+        // Funcionalidad del buscador
+        const searchInput = document.getElementById('searchInput');
+        const suggestions = document.getElementById('suggestions');
+        const medicationInfo = document.getElementById('medicationInfo');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            
+            if (query.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            const filteredMedicamentos = medicamentos.filter(med => 
+                med.medicamento.toLowerCase().includes(query)
+            );
+
+            if (filteredMedicamentos.length > 0) {
+                showSuggestions(filteredMedicamentos);
+            } else {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            const suggestionItems = suggestions.querySelectorAll('.suggestion-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentSuggestionIndex = Math.min(currentSuggestionIndex + 1, suggestionItems.length - 1);
+                updateSuggestionHighlight(suggestionItems);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentSuggestionIndex = Math.max(currentSuggestionIndex - 1, -1);
+                updateSuggestionHighlight(suggestionItems);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentSuggestionIndex >= 0 && suggestionItems[currentSuggestionIndex]) {
+                    suggestionItems[currentSuggestionIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                suggestions.style.display = 'none';
+                currentSuggestionIndex = -1;
+            }
+        });
+
+        function showSuggestions(meds) {
+            suggestions.innerHTML = '';
+            currentSuggestionIndex = -1;
+            
+            meds.slice(0, 8).forEach(med => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = med.medicamento;
+                item.addEventListener('click', () => selectMedication(med));
+                suggestions.appendChild(item);
+            });
+            
+            suggestions.style.display = 'block';
+        }
+
+        function updateSuggestionHighlight(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('highlighted', index === currentSuggestionIndex);
+            });
+        }
+
+        function selectMedication(med) {
+            searchInput.value = med.medicamento;
+            suggestions.style.display = 'none';
+            showMedicationInfo(med);
+        }
+
+        function showMedicationInfo(med) {
+            medicationInfo.innerHTML = `
+                <h3>${med.medicamento}</h3>
+                <div class="info-row">
+                    <span class="info-label">Presentación:</span>
+                    <span class="info-value">${med.presentacion}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vía:</span>
+                    <span class="info-value">${med.via}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Preparación:</span>
+                    <span class="info-value">${med.preparacion}</span>
+                </div>
+            `;
+            medicationInfo.style.display = 'block';
+        }
+
+        // Cerrar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        // Navegación entre páginas
+        function showSearchPage() {
+            document.getElementById('searchPage').classList.add('active');
+            document.getElementById('goteoPage').classList.remove('active');
+            stopDropAnimation();
+        }
+
+        function showGoteoPage() {
+            document.getElementById('searchPage').classList.remove('active');
+            document.getElementById('goteoPage').classList.add('active');
+            
+            // Configurar handlers cuando se muestra la página
+            setTimeout(() => {
+                setupTimeUnitHandlers();
+                console.log("Página de goteo activada");
+            }, 100);
+        }
+
+        // Funciones de la calculadora de goteo
+        function setCalcMode(mode) {
+            currentCalcMode = mode;
+            
+            // Actualizar botones
+            document.getElementById('btnModoTiempo').classList.toggle('active', mode === 'tiempo');
+            document.getElementById('btnModoVelocidad').classList.toggle('active', mode === 'velocidad');
+            
+            // Mostrar/ocultar campos
+            const camposTiempo = document.getElementById('camposTiempo');
+            const camposVelocidad = document.getElementById('camposVelocidad');
+            
+            if (mode === 'tiempo') {
+                camposTiempo.style.display = 'block';
+                camposVelocidad.style.display = 'none';
+                document.getElementById('tiempo').required = true;
+                document.getElementById('gotasMinuto').required = false;
+            } else {
+                camposTiempo.style.display = 'none';
+                camposVelocidad.style.display = 'block';
+                document.getElementById('tiempo').required = false;
+                document.getElementById('gotasMinuto').required = true;
+            }
+            
+            // Limpiar resultados
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('goteoAnimation').style.display = 'none';
+            stopDropAnimation();
+        }
+
+        // Manejar cambio de unidad de tiempo
+        function setupTimeUnitHandlers() {
+            const radioButtons = document.querySelectorAll('input[name="unidadTiempo"]');
+            const labelTiempo = document.getElementById('labelTiempo');
+            const inputTiempo = document.getElementById('tiempo');
+            
+            if (radioButtons && labelTiempo && inputTiempo) {
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value === 'horas') {
+                            labelTiempo.textContent = 'Tiempo de infusión (horas):';
+                            inputTiempo.placeholder = 'Ej: 2.5';
+                            inputTiempo.step = '0.1';
+                        } else {
+                            labelTiempo.textContent = 'Tiempo de infusión (minutos):';
+                            inputTiempo.placeholder = 'Ej: 150';
+                            inputTiempo.step = '1';
+                        }
+                    });
+                });
+            }
+        }
+
+        // Inicializar cuando se carga la página o se cambia a la página de goteo
+        setTimeout(setupTimeUnitHandlers, 100);
+
+        // Calculadora de goteo - versión optimizada para móviles
+        document.getElementById('goteoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Vibración háptica en dispositivos móviles
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            console.log("Formulario enviado"); // Debug
+            
+            const volumen = parseFloat(document.getElementById('volumen').value);
+            const factorGoteo = parseFloat(document.getElementById('factorGoteo').value);
+            
+            console.log("Volumen:", volumen, "Factor:", factorGoteo); // Debug
+            
+            if (!volumen || !factorGoteo) {
+                showAlert("Por favor completa todos los campos requeridos");
+                return;
+            }
+            
+            let resultado = {};
+            
+            if (currentCalcMode === 'tiempo') {
+                // Cálculo por tiempo
+                const tiempo = parseFloat(document.getElementById('tiempo').value);
+                
+                if (!tiempo) {
+                    showAlert("Por favor ingresa el tiempo de infusión");
+                    return;
+                }
+                
+                const unidadTiempo = document.querySelector('input[name="unidadTiempo"]:checked')?.value || 'horas';
+                
+                let tiempoHoras = tiempo;
+                if (unidadTiempo === 'minutos') {
+                    tiempoHoras = tiempo / 60;
+                }
+                
+                const velocidadMlHora = volumen / tiempoHoras;
+                const velocidadMlMinuto = volumen / (tiempoHoras * 60);
+                const velocidadGotasMinuto = velocidadMlMinuto * factorGoteo;
+                
+                resultado = {
+                    volumen: volumen,
+                    tiempo: tiempo,
+                    unidadTiempo: unidadTiempo,
+                    tiempoHoras: tiempoHoras,
+                    factorGoteo: factorGoteo,
+                    velocidadMlHora: velocidadMlHora,
+                    velocidadGotasMinuto: velocidadGotasMinuto,
+                    tipo: 'tiempo'
+                };
+                
+            } else {
+                // Cálculo por velocidad (gotas/minuto)
+                const gotasMinuto = parseFloat(document.getElementById('gotasMinuto').value);
+                
+                if (!gotasMinuto) {
+                    showAlert("Por favor ingresa las gotas por minuto");
+                    return;
+                }
+                
+                const velocidadMlMinuto = gotasMinuto / factorGoteo;
+                const velocidadMlHora = velocidadMlMinuto * 60;
+                const tiempoHoras = volumen / velocidadMlHora;
+                const tiempoMinutos = tiempoHoras * 60;
+                
+                resultado = {
+                    volumen: volumen,
+                    gotasMinuto: gotasMinuto,
+                    factorGoteo: factorGoteo,
+                    velocidadMlHora: velocidadMlHora,
+                    velocidadMlMinuto: velocidadMlMinuto,
+                    tiempoHoras: tiempoHoras,
+                    tiempoMinutos: tiempoMinutos,
+                    velocidadGotasMinuto: gotasMinuto,
+                    tipo: 'velocidad'
+                };
+            }
+            
+            console.log("Resultado calculado:", resultado); // Debug
+            mostrarResultado(resultado);
+        });
+
+        function showAlert(message) {
+            // Crear alerta personalizada para mejor UX móvil
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ff6b6b;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                z-index: 10000;
+                font-weight: 500;
+                box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+                animation: slideDown 0.3s ease;
+                max-width: 90%;
+            `;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 3000);
+        }
+
+        function mostrarResultado(resultado) {
+            console.log("Mostrando resultado:", resultado); // Debug
+            
+            const resultContent = document.getElementById('resultContent');
+            const resultDiv = document.getElementById('result');
+            
+            if (!resultContent || !resultDiv) {
+                console.error("No se encontraron los elementos result");
+                return;
+            }
+            
+            let html = '';
+            
+            try {
+                if (resultado.tipo === 'tiempo') {
+                    html = `
+                        <p><strong>Volumen total:</strong> ${resultado.volumen} ml</p>
+                        <p><strong>Tiempo de infusión:</strong> ${resultado.tiempo} ${resultado.unidadTiempo}</p>
+                        <p><strong>Tipo de equipo:</strong> ${resultado.factorGoteo === 20 ? 'Macrogotero' : 'Microgotero'} (1 ml = ${resultado.factorGoteo} ${resultado.factorGoteo === 20 ? 'gotas' : 'microgotas'})</p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                        <p><strong>Velocidad de infusión:</strong> ${resultado.velocidadMlHora.toFixed(1)} ml/hora</p>
+                        <p><strong>Goteo:</strong> ${Math.round(resultado.velocidadGotasMinuto)} ${resultado.factorGoteo === 20 ? 'gotas' : 'microgotas'}/minuto</p>
+                    `;
+                } else {
+                    const horas = Math.floor(resultado.tiempoHoras);
+                    const minutos = Math.round((resultado.tiempoHoras - horas) * 60);
+                    
+                    html = `
+                        <p><strong>Volumen total:</strong> ${resultado.volumen} ml</p>
+                        <p><strong>Velocidad deseada:</strong> ${resultado.gotasMinuto} ${resultado.factorGoteo === 20 ? 'gotas' : 'microgotas'}/minuto</p>
+                        <p><strong>Tipo de equipo:</strong> ${resultado.factorGoteo === 20 ? 'Macrogotero' : 'Microgotero'} (1 ml = ${resultado.factorGoteo} ${resultado.factorGoteo === 20 ? 'gotas' : 'microgotas'})</p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                        <p><strong>Velocidad de infusión:</strong> ${resultado.velocidadMlHora.toFixed(1)} ml/hora</p>
+                        <p><strong>Tiempo total:</strong> ${horas}h ${minutos}min (${resultado.tiempoMinutos.toFixed(0)} minutos)</p>
+                    `;
+                }
+                
+                resultContent.innerHTML = html;
+                resultDiv.style.display = 'block';
+                
+                console.log("Resultado mostrado correctamente");
+                
+                // Mostrar y INICIAR animación automáticamente
+                const gotasMinuto = Math.round(resultado.velocidadGotasMinuto || resultado.gotasMinuto);
+                mostrarYIniciarAnimacion(gotasMinuto);
+                
+                // Scroll suave al resultado en móviles
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 300);
+                }
+                
+            } catch (error) {
+                console.error("Error al mostrar resultado:", error);
+                resultContent.innerHTML = `<p style="color: red;">Error al calcular: ${error.message}</p>`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        function mostrarYIniciarAnimacion(gotasMinuto) {
+            console.log("Iniciando animación automática con", gotasMinuto, "gotas/min"); // Debug
+            
+            const animationDiv = document.getElementById('goteoAnimation');
+            const velocityDisplay = document.getElementById('velocityDisplay');
+            
+            if (!animationDiv || !velocityDisplay) {
+                console.error("No se encontraron elementos de animación");
+                return;
+            }
+            
+            try {
+                currentDropsPerMinute = gotasMinuto;
+                
+                animationDiv.style.display = 'block';
+                velocityDisplay.innerHTML = `${gotasMinuto} ${gotasMinuto > 30 ? 'microgotas' : 'gotas'}/min <span class="status-indicator"></span>`;
+                
+                // INICIAR automáticamente la animación
+                startDropAnimation();
+                
+                // Actualizar botón
+                const button = document.getElementById('animationToggle');
+                if (button) {
+                    button.textContent = '⏸️ Pausar';
+                }
+                
+                console.log("Animación iniciada automáticamente");
+                
+            } catch (error) {
+                console.error("Error en animación:", error);
+            }
+        }
+
+        function startDropAnimation() {
+            stopDropAnimation(); // Limpiar animación anterior
+            
+            if (currentDropsPerMinute === 0) return;
+            
+            const drop = document.getElementById('animatedDrop');
+            if (!drop) return;
+            
+            // Calcular intervalo entre gotas (en milisegundos)
+            const intervalBetweenDrops = (60 / currentDropsPerMinute) * 1000;
+            
+            console.log(`Intervalo entre gotas: ${intervalBetweenDrops}ms para ${currentDropsPerMinute} gotas/min`);
+            
+            // Función para crear una gota
+            function createDrop() {
+                if (!isAnimationRunning) return;
+                
+                const drop = document.getElementById('animatedDrop');
+                if (!drop) return;
+                
+                // Reiniciar la animación de la gota
+                drop.style.animation = 'none';
+                drop.offsetHeight; // Trigger reflow
+                drop.style.animation = 'dropFall 0.8s ease-in';
+                
+                // Vibración háptica sutil en dispositivos móviles (solo para gotas muy lentas)
+                if (navigator.vibrate && currentDropsPerMinute < 10) {
+                    navigator.vibrate(20);
+                }
+            }
+            
+            // Iniciar la primera gota inmediatamente
+            createDrop();
+            
+            // Configurar intervalo para gotas subsecuentes
+            dropAnimationInterval = setInterval(createDrop, intervalBetweenDrops);
+            isAnimationRunning = true;
+            
+            // Actualizar indicador de estado
+            updateStatusIndicator(true);
+        }
+
+        function stopDropAnimation() {
+            if (dropAnimationInterval) {
+                clearInterval(dropAnimationInterval);
+                dropAnimationInterval = null;
+            }
+            isAnimationRunning = false;
+            updateStatusIndicator(false);
+        }
+
+        function updateStatusIndicator(isRunning) {
+            const indicator = document.querySelector('.status-indicator');
+            if (indicator) {
+                indicator.classList.toggle('stopped', !isRunning);
+            }
+        }
+
+        function toggleAnimation() {
+            try {
+                const button = document.getElementById('animationToggle');
+                
+                if (!button) {
+                    console.error("No se encontró botón para toggle");
+                    return;
+                }
+                
+                if (isAnimationRunning) {
+                    stopDropAnimation();
+                    button.textContent = '▶️ Iniciar';
+                } else {
+                    startDropAnimation();
+                    button.textContent = '⏸️ Pausar';
+                }
+                
+                // Vibración háptica en dispositivos móviles
+                if (navigator.vibrate) {
+                    navigator.vibrate(30);
+                }
+                
+            } catch (error) {
+                console.error("Error en toggle:", error);
+            }
+        }
+
+        // Optimizaciones para dispositivos móviles
+        
+        // Prevenir zoom en inputs en iOS
+        document.addEventListener('touchstart', function() {}, true);
+        
+        // Manejar orientación
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // Recalcular dimensiones si es necesario
+                if (isAnimationRunning) {
+                    stopDropAnimation();
+                    setTimeout(startDropAnimation, 300);
+                }
+            }, 500);
+        });
+        
+        // Optimizar rendimiento en dispositivos de baja gama
+        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
+            // Reducir frecuencia de animación en dispositivos con pocos cores
+            console.log("Dispositivo de baja gama detectado, optimizando animaciones");
+        }
+        
+        // Precargar elementos críticos
+        window.addEventListener('load', function() {
+            // Precargar las primeras sugerencias para mejor rendimiento
+            if (medicamentos.length > 0) {
+                console.log("Base de datos de medicamentos cargada:", medicamentos.length, "medicamentos");
+            }
+        });
+
+        // Service Worker para PWA (opcional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registrado con éxito:', registration.scope);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registro falló:', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
