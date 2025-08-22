@@ -825,7 +825,7 @@
                         </div>
                         <div class="form-group">
                             <label for="tiempo" id="labelTiempo">Tiempo de infusión (horas):</label>
-                            <input type="number" id="tiempo" step="0.1" min="0.1" placeholder="Ej: 2.5">
+                            <input type="number" id="tiempo" step="any" min="0.1" placeholder="Ej: 2.5">
                         </div>
                     </div>
 
@@ -833,7 +833,7 @@
                     <div id="camposVelocidad" class="velocidad-fields" style="display: none;">
                         <div class="form-group">
                             <label for="gotasMinuto">Velocidad deseada (gotas/minuto):</label>
-                            <input type="number" id="gotasMinuto" step="1" min="1" placeholder="Ej: 25">
+                            <input type="number" id="gotasMinuto" step="any" min="1" placeholder="Ej: 25">
                         </div>
                     </div>
 
@@ -1136,11 +1136,11 @@
                         if (this.value === 'horas') {
                             labelTiempo.textContent = 'Tiempo de infusión (horas):';
                             inputTiempo.placeholder = 'Ej: 2.5';
-                            inputTiempo.step = '0.1';
+                            inputTiempo.step = 'any';
                         } else {
                             labelTiempo.textContent = 'Tiempo de infusión (minutos):';
                             inputTiempo.placeholder = 'Ej: 150';
-                            inputTiempo.step = '1';
+                            inputTiempo.step = 'any';
                         }
                     });
                 });
